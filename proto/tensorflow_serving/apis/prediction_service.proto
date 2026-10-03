@@ -1,0 +1,20 @@
+syntax = "proto3";
+
+package tensorflow.serving;
+
+import "tensorflow_serving/apis/predict.proto";
+
+option cc_enable_arenas = true;
+
+// Trimmed copy of TensorFlow Serving's prediction_service.proto.
+//
+// The upstream service also exposes Classify, Regress, MultiInference and
+// GetModelMetadata, which drag in ~20 more .proto files. This tutorial only
+// calls Predict, so only Predict is declared here. Package, service and method
+// names are unchanged, so the gRPC path is still
+//   /tensorflow.serving.PredictionService/Predict
+// and the generated clients are wire-compatible with a stock model server.
+service PredictionService {
+  // Predict -- provides access to loaded TensorFlow model.
+  rpc Predict(PredictRequest) returns (PredictResponse);
+}

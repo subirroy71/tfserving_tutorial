@@ -1,0 +1,23 @@
+[package]
+name = "tfserving-json-client"
+version = "0.1.0"
+edition = "2021"
+description = "TensorFlow Serving gRPC client that builds its request tensors from JSON"
+license = "Apache-2.0"
+
+[[bin]]
+name = "client"
+path = "src/main.rs"
+
+[dependencies]
+base64 = "0.23.1"
+clap = { version = "4.6.7", features = ["derive"] }
+prost = "0.14.4"
+serde_json = "1.0.151"
+tokio = { version = "1.53.2", features = ["macros", "rt-multi-thread"] }
+tonic = "0.14.6"
+tonic-prost = "0.14.6"
+
+[build-dependencies]
+protoc-bin-vendored = "3.2.0"
+tonic-prost-build = "0.14.6"

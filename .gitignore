@@ -1,0 +1,6 @@
+__pycache__/
+*.pyc
+.venv/
+python/gen/
+rust/target/
+go/bin/

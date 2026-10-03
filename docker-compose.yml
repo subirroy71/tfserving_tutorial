@@ -1,0 +1,11 @@
+# docker compose up   ->  gRPC on :8500, REST on :8501
+services:
+  serving:
+    image: tensorflow/serving
+    ports:
+      - "8500:8500"
+      - "8501:8501"
+    environment:
+      MODEL_NAME: demo
+    volumes:
+      - ./models/demo:/models/demo:ro
