@@ -910,6 +910,7 @@ dependencies = [
  "base64 0.23.1",
  "clap",
  "prost",
+ "prost-types",
  "protoc-bin-vendored",
  "serde_json",
  "tokio",

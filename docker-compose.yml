@@ -1,11 +1,47 @@
-# docker compose up   ->  gRPC on :8500, REST on :8501
+# docker compose up                        TF Serving: gRPC :8500, REST :8501
+# docker compose --profile monitoring up   + Prometheus :9090, Grafana :3000
+#   (override host ports with PROMETHEUS_PORT / GRAFANA_PORT)
 services:
   serving:
-    image: tensorflow/serving
+    image: tensorflow/serving:2.21.0
+    # The image is x86-64 only; on Apple Silicon it runs under emulation.
+    platform: linux/amd64
     ports:
-      - "8500:8500"
-      - "8501:8501"
-    environment:
-      MODEL_NAME: demo
+      - "8500:8500"   # gRPC
+      - "8501:8501"   # REST + /monitoring/prometheus/metrics
     volumes:
-      - ./models/demo:/models/demo:ro
+      - ./models:/models:ro
+      - ./config:/config:ro
+    entrypoint: ["tensorflow_model_server"]
+    command:
+      - --port=8500
+      - --rest_api_port=8501
+      - --model_config_file=/config/models.config
+      - --model_config_file_poll_wait_seconds=10
+      - --monitoring_config_file=/config/monitoring.config
+      - --enable_batching
+      - --batching_parameters_file=/config/batching.config
+      - --enable_model_warmup=true
+      # Labels may name versions that are still loading (needed at startup).
+      - --allow_version_labels_for_unavailable_models=true
+
+  prometheus:
+    profiles: [monitoring]
+    image: prom/prometheus:v3.5.0
+    ports:
+      - "${PROMETHEUS_PORT:-9090}:9090"
+    volumes:
+      - ./monitoring/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+
+  grafana:
+    profiles: [monitoring]
+    image: grafana/grafana:12.1.1
+    ports:
+      - "${GRAFANA_PORT:-3000}:3000"   # GRAFANA_PORT=3300 if 3000 is taken
+    environment:
+      GF_AUTH_ANONYMOUS_ENABLED: "true"
+      GF_AUTH_ANONYMOUS_ORG_ROLE: Admin
+      GF_AUTH_DISABLE_LOGIN_FORM: "true"
+    volumes:
+      - ./monitoring/grafana/provisioning:/etc/grafana/provisioning:ro
+      - ./monitoring/grafana/dashboards:/var/lib/grafana/dashboards:ro

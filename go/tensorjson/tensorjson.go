@@ -448,7 +448,9 @@ func boxed[W any](vals []W, err error, box func(W) any) ([]any, error) {
 	return out, nil
 }
 
-func jsonFloat[T float32 | float64](v T) any {
+// JSONFloat boxes a float for json.Marshal: a float32 prints as the shortest
+// decimal that round-trips it, and NaN/Inf become "NaN", "Infinity", "-Infinity".
+func JSONFloat[T float32 | float64](v T) any {
 	switch f := float64(v); {
 	case math.IsNaN(f):
 		return "NaN"
@@ -466,10 +468,10 @@ func flatValues(t *fw.TensorProto, n int) ([]any, error) {
 	switch t.GetDtype() {
 	case fw.DataType_DT_FLOAT:
 		v, err := values(t, n, t.GetFloatVal(), same[float32])
-		return boxed(v, err, jsonFloat[float32])
+		return boxed(v, err, JSONFloat[float32])
 	case fw.DataType_DT_DOUBLE:
 		v, err := values(t, n, t.GetDoubleVal(), same[float64])
-		return boxed(v, err, jsonFloat[float64])
+		return boxed(v, err, JSONFloat[float64])
 	case fw.DataType_DT_INT8:
 		v, err := values(t, n, t.GetIntVal(), func(x int32) int8 { return int8(x) })
 		return boxed(v, err, jsonInt[int8])

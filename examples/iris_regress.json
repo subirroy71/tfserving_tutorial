@@ -1,0 +1,7 @@
+{
+  "examples": [
+    {"petal_length": 1.4},
+    {"petal_length": 4.5},
+    {"petal_length": 6.0}
+  ]
+}

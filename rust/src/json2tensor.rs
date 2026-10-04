@@ -406,7 +406,13 @@ fn json_float(v: f64, shortest: String) -> Value {
     }
 }
 
-fn json_bytes(bytes: Vec<u8>) -> Value {
+/// A float32 as the shortest decimal that round-trips it (0.1, not
+/// 0.10000000149011612); NaN and the infinities become strings.
+pub(crate) fn json_f32(v: f32) -> Value {
+    json_float(v.into(), v.to_string())
+}
+
+pub(crate) fn json_bytes(bytes: Vec<u8>) -> Value {
     match String::from_utf8(bytes) {
         Ok(text) => Value::String(text),
         Err(e) => serde_json::json!({ "b64": BASE64.encode(e.as_bytes()) }),
@@ -426,9 +432,10 @@ fn flat_values(tensor: &TensorProto, n: usize) -> Result<Vec<Value>> {
     };
     let t = tensor;
     Ok(match dtype_of(t)? {
-        DataType::DtFloat => all(fixed(t, n, t.float_val.clone(), f32::from_le_bytes)?, |v| {
-            json_float(v.into(), v.to_string())
-        }),
+        DataType::DtFloat => all(
+            fixed(t, n, t.float_val.clone(), f32::from_le_bytes)?,
+            json_f32,
+        ),
         DataType::DtDouble => all(
             fixed(t, n, t.double_val.clone(), f64::from_le_bytes)?,
             |v| json_float(v, v.to_string()),

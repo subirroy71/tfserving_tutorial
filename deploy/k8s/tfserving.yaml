@@ -1,0 +1,111 @@
+# TensorFlow Serving on Kubernetes: the image from deploy/Dockerfile, with the
+# model config in a ConfigMap so labels and policies change without a rollout.
+#
+#   kubectl apply -f deploy/k8s/tfserving.yaml
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: tfserving-config
+data:
+  models.config: |
+    model_config_list {
+      config {
+        name: "demo"
+        base_path: "/models/demo"
+        model_platform: "tensorflow"
+        model_version_policy { specific { versions: 1 versions: 2 } }
+        version_labels { key: "stable" value: 1 }
+        version_labels { key: "canary" value: 2 }
+      }
+      config {
+        name: "iris"
+        base_path: "/models/iris"
+        model_platform: "tensorflow"
+      }
+    }
+  monitoring.config: |
+    prometheus_config { enable: true path: "/monitoring/prometheus/metrics" }
+  batching.config: |
+    max_batch_size { value: 32 }
+    batch_timeout_micros { value: 2000 }
+    max_enqueued_batches { value: 100 }
+    num_batch_threads { value: 2 }
+    allowed_batch_sizes: 8
+    allowed_batch_sizes: 16
+    allowed_batch_sizes: 32
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: tfserving
+  labels: {app: tfserving}
+spec:
+  replicas: 2
+  selector:
+    matchLabels: {app: tfserving}
+  strategy:
+    rollingUpdate: {maxUnavailable: 0, maxSurge: 1}
+  template:
+    metadata:
+      labels: {app: tfserving}
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/port: "8501"
+        prometheus.io/path: /monitoring/prometheus/metrics
+    spec:
+      containers:
+        - name: serving
+          image: tfserving-tutorial:1
+          ports:
+            - {name: grpc, containerPort: 8500}
+            - {name: http, containerPort: 8501}
+          volumeMounts:
+            # Replaces the config baked into the image. The kubelet updates
+            # these files (within about a minute) when the ConfigMap changes,
+            # and the server re-reads models.config every 30 s.
+            - {name: config, mountPath: /config, readOnly: true}
+          env:
+            - {name: TF_CPP_MIN_LOG_LEVEL, value: "0"}
+          resources:
+            requests: {cpu: "1", memory: 1Gi}
+            limits: {memory: 2Gi}
+          # Ports open only after the initial models are loaded, so allow
+          # for slow loads before the other probes start counting.
+          startupProbe:
+            httpGet: {path: /v1/models/demo, port: http}
+            periodSeconds: 5
+            failureThreshold: 60
+          readinessProbe:
+            httpGet: {path: /v1/models/demo, port: http}
+            periodSeconds: 10
+          livenessProbe:
+            tcpSocket: {port: grpc}
+            periodSeconds: 20
+            failureThreshold: 3
+      volumes:
+        - name: config
+          configMap: {name: tfserving-config}
+      terminationGracePeriodSeconds: 30
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: tfserving
+spec:
+  selector: {app: tfserving}
+  ports:
+    - {name: grpc, port: 8500, targetPort: grpc}
+    - {name: http, port: 8501, targetPort: http}
+---
+# gRPC keeps one long-lived HTTP/2 connection per client, so a ClusterIP
+# Service pins each client to one pod. This headless Service gives clients
+# every pod IP for client-side load balancing (dns:/// + round_robin).
+apiVersion: v1
+kind: Service
+metadata:
+  name: tfserving-headless
+spec:
+  clusterIP: None
+  selector: {app: tfserving}
+  ports:
+    - {name: grpc, port: 8500, targetPort: grpc}

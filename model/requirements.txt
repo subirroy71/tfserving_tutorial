@@ -1,1 +1,3 @@
-tensorflow>=2.16
+tensorflow==2.21.0
+# The serving API protos, without its pinned tensorflow dependency:
+#   pip install --no-deps tensorflow-serving-api

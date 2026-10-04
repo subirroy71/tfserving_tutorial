@@ -1,20 +1,31 @@
 syntax = "proto3";
 
 package tensorflow.serving;
-
-import "tensorflow_serving/apis/predict.proto";
-
 option cc_enable_arenas = true;
 
-// Trimmed copy of TensorFlow Serving's prediction_service.proto.
-//
-// The upstream service also exposes Classify, Regress, MultiInference and
-// GetModelMetadata, which drag in ~20 more .proto files. This tutorial only
-// calls Predict, so only Predict is declared here. Package, service and method
-// names are unchanged, so the gRPC path is still
-//   /tensorflow.serving.PredictionService/Predict
-// and the generated clients are wire-compatible with a stock model server.
+import "tensorflow_serving/apis/classification.proto";
+import "tensorflow_serving/apis/get_model_metadata.proto";
+import "tensorflow_serving/apis/inference.proto";
+import "tensorflow_serving/apis/predict.proto";
+import "tensorflow_serving/apis/regression.proto";
+
+// open source marker; do not remove
+// PredictionService provides access to machine-learned models loaded by
+// model_servers.
 service PredictionService {
+  // Classify.
+  rpc Classify(ClassificationRequest) returns (ClassificationResponse);
+
+  // Regress.
+  rpc Regress(RegressionRequest) returns (RegressionResponse);
+
   // Predict -- provides access to loaded TensorFlow model.
   rpc Predict(PredictRequest) returns (PredictResponse);
+
+  // MultiInference API for multi-headed models.
+  rpc MultiInference(MultiInferenceRequest) returns (MultiInferenceResponse);
+
+  // GetModelMetadata - provides access to metadata for loaded models.
+  rpc GetModelMetadata(GetModelMetadataRequest)
+      returns (GetModelMetadataResponse);
 }

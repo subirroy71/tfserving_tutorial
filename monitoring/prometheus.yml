@@ -1,0 +1,8 @@
+global:
+  scrape_interval: 5s
+
+scrape_configs:
+  - job_name: tfserving
+    metrics_path: /monitoring/prometheus/metrics
+    static_configs:
+      - targets: ["serving:8501"]

@@ -249,7 +249,7 @@ def inputs_from_json(doc: Any) -> dict[str, tensor_pb2.TensorProto]:
 # TensorProto -> JSON
 # --------------------------------------------------------------------------
 
-def _json_float(v: float, single: bool) -> Any:
+def json_float(v: float, single: bool) -> Any:
     if v != v:
         return "NaN"
     if v in (float("inf"), float("-inf")):
@@ -265,7 +265,7 @@ def _json_float(v: float, single: bool) -> Any:
     return short
 
 
-def _json_bytes(b: bytes) -> Any:
+def json_bytes(b: bytes) -> Any:
     try:
         return b.decode("utf-8")
     except UnicodeDecodeError:
@@ -300,11 +300,11 @@ def _flat_values(tensor: tensor_pb2.TensorProto, count: int) -> list[Any]:
         raise TensorJSONError(f"tensor has {len(values)} values for {count} elements")
 
     if dtype == types_pb2.DT_STRING:
-        return [_json_bytes(v) for v in values]
+        return [json_bytes(v) for v in values]
     if dtype == types_pb2.DT_BOOL:
         return [bool(v) for v in values]
     if dtype in (types_pb2.DT_FLOAT, types_pb2.DT_DOUBLE):
-        return [_json_float(v, dtype == types_pb2.DT_FLOAT) for v in values]
+        return [json_float(v, dtype == types_pb2.DT_FLOAT) for v in values]
     return values
 
 
