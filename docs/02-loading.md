@@ -257,6 +257,8 @@ Failed to start server. Error: UNKNOWN: 1 servable(s) did not become available:
 {{{name: iris version: 3} due to error: OUT_OF_RANGE: Read less bytes than requested}, }
 ```
 
+![Same disk, opposite outcomes: a running server keeps serving v1 when a corrupt v3 appears, while a fresh server with the same disk exits and crash-loops](img/broken-version-restart.png)
+
 So a bad version that is harmless on a running server crash-loops every new
 pod that starts with it: after a restart, a scale-up, or a deploy of an image
 with the model baked in. Alert on
