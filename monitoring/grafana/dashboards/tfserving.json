@@ -314,9 +314,42 @@
       },
       "fieldConfig": {
         "defaults": {
-          "unit": "none"
+          "unit": "µs"
         },
-        "overrides": []
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byFrameRefID",
+              "options": "B"
+            },
+            "properties": [
+              {
+                "id": "custom.axisPlacement",
+                "value": "right"
+              },
+              {
+                "id": "unit",
+                "value": "none"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byFrameRefID",
+              "options": "C"
+            },
+            "properties": [
+              {
+                "id": "custom.axisPlacement",
+                "value": "right"
+              },
+              {
+                "id": "unit",
+                "value": "none"
+              }
+            ]
+          }
+        ]
       },
       "options": {
         "legend": {
@@ -335,7 +368,7 @@
         {
           "refId": "A",
           "expr": "histogram_quantile(0.99, sum by (le) (rate(:tensorflow:serving:batching_session:queuing_latency_bucket[$__rate_interval])))",
-          "legendFormat": "queueing p99 (µs)"
+          "legendFormat": "queueing p99"
         },
         {
           "refId": "B",
@@ -368,7 +401,24 @@
         "defaults": {
           "unit": "none"
         },
-        "overrides": []
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byFrameRefID",
+              "options": "B"
+            },
+            "properties": [
+              {
+                "id": "custom.axisPlacement",
+                "value": "right"
+              },
+              {
+                "id": "unit",
+                "value": "µs"
+              }
+            ]
+          }
+        ]
       },
       "options": {
         "legend": {
@@ -392,7 +442,7 @@
         {
           "refId": "B",
           "expr": ":tensorflow:serving:model_warmup_latency_sum / :tensorflow:serving:model_warmup_latency_count",
-          "legendFormat": "warmup µs {{model_path}}"
+          "legendFormat": "warmup {{model_path}}"
         }
       ]
     }

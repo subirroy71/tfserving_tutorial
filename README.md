@@ -1,11 +1,22 @@
 # tfserving_tutorial
 
+[![CI](https://github.com/subirroy71/tfserving_tutorial/actions/workflows/ci.yml/badge.svg)](https://github.com/subirroy71/tfserving_tutorial/actions/workflows/ci.yml)
+
 A hands-on tutorial for [TensorFlow Serving](https://www.tensorflow.org/tfx/guide/serving):
 export models, load and version them, serve them, call every API from
 **Python, Go and Rust**, read the responses, and monitor it all with
 Prometheus and Grafana.
 
 Every command and output in the docs was run against `tensorflow/serving:2.21.0`.
+CI repeats the test suite and the end-to-end run against the real server on
+every push, and weekly.
+
+![The Grafana dashboard from chapter 6](docs/img/grafana-dashboard.png)
+
+**Hit an error?** The [troubleshooting table](docs/07-production.md#troubleshooting)
+lists the messages TF Serving gives and what causes each one: labels at
+startup, `1` vs `1.0`, scalar inputs with batching, hung config reloads, and
+more.
 
 ## Quick start
 

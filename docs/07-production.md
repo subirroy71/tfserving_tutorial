@@ -170,6 +170,7 @@ The settings that matter:
 | `Unrecognized servable version label: X` | label not in the config, or the config not reloaded yet | check the config; wait one poll interval |
 | new version never appears | directory name isn't a number, or the policy excludes it | ([ch. 2](02-loading.md#version-policies-which-versions-stay-loaded)) |
 | version stuck in `LOADING` | load failing and retrying | server log: `Loading servable: ... failed:` |
+| `Failed to start server. Error: UNKNOWN: 1 servable(s) did not become available` | the newest version (the only one the policy loads) is broken | remove or fix it; a running server would have kept the previous version ([ch. 2](02-loading.md#when-a-version-fails-to-load)) |
 | config reload hangs, then every later reload hangs too | a new model's `base_path` doesn't exist | restart; check paths before reloading |
 | `RESOURCE_EXHAUSTED: Received message larger than max` | message over 4 MB | raise the client's receive limit, and the server's `--grpc_channel_arguments` |
 | first request after a deploy is slow | no warmup file | add `assets.extra/tf_serving_warmup_requests` ([ch. 1](01-models.md#warmup-requests)) |

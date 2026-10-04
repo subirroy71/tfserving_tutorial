@@ -1,0 +1,60 @@
+name: CI
+
+on:
+  push:
+  pull_request:
+  schedule:
+    - cron: "0 6 * * 1"   # weekly, to notice upstream breakage
+
+jobs:
+  test:
+    name: unit tests + e2e against tensorflow/serving
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - uses: actions/setup-go@v5
+        with:
+          go-version-file: go/go.mod
+          cache-dependency-path: go/go.sum
+      - uses: dtolnay/rust-toolchain@stable
+      - uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: rust
+
+      - name: Python virtualenv
+        run: |
+          python -m venv .venv
+          .venv/bin/pip install -r python/requirements.txt
+
+      - name: Start TensorFlow Serving
+        run: docker compose up -d serving
+
+      - name: Unit tests (Python, Go, Rust)
+        run: make test
+
+      - name: gofmt
+        run: test -z "$(gofmt -l go/cmd go/tensorjson go/examplejson go/responses)"
+
+      - name: Wait for models
+        run: |
+          for i in $(seq 60); do
+            if curl -sf localhost:8501/v1/models/iris >/dev/null &&
+               [ "$(curl -s localhost:8501/v1/models/demo | grep -c AVAILABLE)" = 2 ]; then
+              exit 0
+            fi
+            sleep 2
+          done
+          docker compose logs serving
+          exit 1
+
+      - name: End-to-end (all three clients, compared)
+        run: make e2e
+
+      - name: Server log on failure
+        if: failure()
+        run: docker compose logs serving

@@ -240,7 +240,26 @@ retrier.cc:40] Loading servable: {name: iris version: 3} failed: OUT_OF_RANGE: R
 
 v1 keeps serving. v3 stays in `LOADING` while the server retries
 (`--max_num_load_retries=5`, `--load_retry_interval_micros=60000000`, so for
-about five minutes), then goes to `END` with the error in `status`. Alert on
+about five minutes), then goes to `END` with the error in `status`
+(observed with retries turned off):
+
+```
+3 END OUT_OF_RANGE Read less bytes than requested
+1 AVAILABLE OK
+```
+
+**At startup it is the opposite.** A fresh server loads only what the policy
+selects, here the highest version. If that version is broken, there is
+nothing to fall back to, and the server exits:
+
+```
+Failed to start server. Error: UNKNOWN: 1 servable(s) did not become available:
+{{{name: iris version: 3} due to error: OUT_OF_RANGE: Read less bytes than requested}, }
+```
+
+So a bad version that is harmless on a running server crash-loops every new
+pod that starts with it: after a restart, a scale-up, or a deploy of an image
+with the model baked in. Alert on
 it with the `load_attempt_count{status="fail"}` metric
 ([chapter 6](06-monitoring.md)), because the only other sign is that the old
 version keeps answering.

@@ -136,6 +136,8 @@ docker compose --profile monitoring up -d
 | inside the server | p50/p99 model run time; batching queueing delay, executed batch size, rows per request |
 | lifecycle | load attempts and warmup time per version directory |
 
+![The TensorFlow Serving dashboard under mixed gRPC and REST traffic](img/grafana-dashboard.png)
+
 Generate some traffic to watch it move:
 
 ```bash
