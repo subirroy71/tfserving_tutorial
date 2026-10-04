@@ -1,5 +1,6 @@
 ADDR ?= localhost:8500
-PYTHON ?= python3
+# The project virtualenv if there is one (python3 -m venv .venv), else python3.
+PYTHON ?= $(if $(wildcard .venv/bin/python),.venv/bin/python,python3)
 CARGO ?= cargo
 
 .PHONY: help models serve monitoring down mock py-protos go-protos test test-py test-go test-rust e2e

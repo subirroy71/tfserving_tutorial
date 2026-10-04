@@ -13,9 +13,10 @@ Every command and output in the docs was run against `tensorflow/serving:2.21.0`
 docker compose up -d                       # TF Serving: gRPC :8500, REST :8501
 curl -s localhost:8501/v1/models/demo      # wait until versions 1 and 2 are AVAILABLE
 
-pip install -r python/requirements.txt && ./python/gen_protos.sh
-python python/client.py predict --input examples/applicants.json
-python python/client.py classify --model iris --input examples/iris_classify.json
+python3 -m venv .venv && .venv/bin/pip install -r python/requirements.txt
+PYTHON=.venv/bin/python ./python/gen_protos.sh
+.venv/bin/python python/client.py predict --input examples/applicants.json
+.venv/bin/python python/client.py classify --model iris --input examples/iris_classify.json
 
 docker compose --profile monitoring up -d  # + Prometheus :9090, Grafana :3000
 ```
@@ -103,5 +104,6 @@ make e2e         # 15 cases x 3 clients against localhost:8500, outputs and exit
 error. All three suites load the same files, so the converters can't drift
 apart.
 
-Make variables: `PYTHON=...` picks the interpreter, `CARGO=...` the cargo
+The Makefile uses `.venv/bin/python` when `.venv` exists. Make variables:
+`PYTHON=...` picks another interpreter, `CARGO=...` the cargo
 binary, and `ADDR=host:port` the server for `make e2e`.

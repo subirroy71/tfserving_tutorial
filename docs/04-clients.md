@@ -32,10 +32,10 @@ the RPC failed, `2` bad arguments or bad input.
 Setup:
 
 ```bash
-# Python 3.10+
-pip install -r python/requirements.txt
-./python/gen_protos.sh                    # writes python/gen/ (no TensorFlow needed)
-python python/client.py status --model demo
+# Python 3.10+, in a virtualenv
+python3 -m venv .venv && .venv/bin/pip install -r python/requirements.txt
+PYTHON=.venv/bin/python ./python/gen_protos.sh   # writes python/gen/ (no TensorFlow needed)
+.venv/bin/python python/client.py status --model demo
 
 # Go 1.24+ (generated code is committed)
 cd go && go run ./cmd/client status --model demo
